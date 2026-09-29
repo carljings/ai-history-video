@@ -1,0 +1,9 @@
+# Python
+.venv/
+__pycache__/
+
+# Render intermediates and outputs (the finished video is attached to a GitHub Release)
+build/
+*.mp4
+part_*
+soundtrack.wav
