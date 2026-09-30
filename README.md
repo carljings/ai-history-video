@@ -1,10 +1,10 @@
 # 人工智能简史 · The History of AI (5-minute edition)
 
-[![人工智能简史](docs/poster.jpg)](https://github.com/carljings/ai-history-5min/releases/download/v1.0/ai_history_5min.mp4)
+[![人工智能简史](docs/poster.jpg)](https://github.com/carljings/ai-history-video/releases/download/5min-v1.0/ai_history_5min.mp4)
 
-**▶ [Watch / download the video (MP4, 1080p60, 5:00)](https://github.com/carljings/ai-history-5min/releases/download/v1.0/ai_history_5min.mp4)** · 观看 / 下载视频
+**▶ [Watch / download the video (MP4, 1080p60, 5:00)](https://github.com/carljings/ai-history-video/releases/download/5min-v1.0/ai_history_5min.mp4)** · 观看 / 下载视频
 
-Looking for the short version? See [The History of AI — in 120 seconds](https://github.com/carljings/ai-history-video).
+Looking for the short version? See [The History of AI — in 120 seconds](https://github.com/carljings/ai-history-video/tree/main) on the `main` branch.
 
 A five-minute motion-graphics film about the history of artificial intelligence, from Ada Lovelace's first program (1843) to reasoning models and AI agents (2025). All on-screen text is bilingual, with Chinese first: every chapter has a Chinese title, an English title and a short Chinese explanation of what happened and why it mattered.
 
