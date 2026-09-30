@@ -5,16 +5,16 @@
   render.py still  T [T ...]                  full-size PNG stills
   render.py events                            dump sound-effect cue list -> audio_events.json
   render.py frames [--fps 30] [--workers 4]   every frame as JPEG into build/
-  render.py encode [--fps 30] [--out ai_history.mp4]
+  render.py encode [--fps 30] [--out ai_history_5min.mp4]
 """
 import argparse, asyncio, base64, http.server, io, json, os, socketserver, subprocess, sys, threading, time
 from multiprocessing import Process
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SCRATCH = Path(os.environ.get('AIH_SCRATCH', ROOT / 'build'))
+SCRATCH = Path(os.environ.get("AIH_SCRATCH", ROOT / "build"))
 CHROME = '/usr/bin/google-chrome'
-DURATION = 120
+DURATION = 300
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -166,7 +166,7 @@ def cmd_encode(a):
     if audio.exists():
         cmd += ['-i', str(audio)]
     cmd += ['-c:v', 'libx264', '-preset', 'slow', '-crf', str(a.crf), '-tune', 'film', '-pix_fmt', 'yuv420p',
-            '-metadata', 'title=The History of AI — in 120 seconds',
+            '-metadata', 'title=人工智能简史 · The History of AI (5-minute edition)',
             '-profile:v', 'high', '-movflags', '+faststart', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709']
     if audio.exists():
         cmd += ['-c:a', 'aac', '-b:a', '256k', '-shortest']
@@ -184,6 +184,6 @@ if __name__ == '__main__':
     sp.add_parser('events')
     s = sp.add_parser('frames'); s.add_argument('--fps', type=int, default=30); s.add_argument('--workers', type=int, default=4)
     s.add_argument('--first', type=int, default=0); s.add_argument('--last', type=int, default=0)
-    s = sp.add_parser('encode'); s.add_argument('--fps', type=int, default=30); s.add_argument('--out', default='ai_history.mp4'); s.add_argument('--crf', type=int, default=18)
+    s = sp.add_parser('encode'); s.add_argument('--fps', type=int, default=30); s.add_argument('--out', default='ai_history_5min.mp4'); s.add_argument('--crf', type=int, default=18)
     a = ap.parse_args()
     {'sheet': cmd_sheet, 'still': cmd_still, 'events': cmd_events, 'frames': cmd_frames, 'encode': cmd_encode}[a.cmd](a)

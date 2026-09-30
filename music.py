@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Original soundtrack for "The History of AI" — synthesized entirely in code.
+"""Original soundtrack for "人工智能简史 · The History of AI" (5-minute edition), synthesized in code.
 
-A film-score style cue in D minor at 120 BPM (one bar = 2 s) whose sections follow the
-chapters of the video, plus sound effects cued from audio_events.json (exported by the
-animation, so every click, clack and blip lands on its frame).  Writes soundtrack.wav.
+A film-score style cue in D minor at 120 BPM (one bar = 2 s, 150 bars) whose sections follow the
+chapters and acts of the video, plus sound effects cued from audio_events.json (exported by the
+animation, so every click, clack, whoosh and hit lands on its frame).  Writes soundtrack.wav.
 """
 import json
 from pathlib import Path
@@ -14,7 +14,7 @@ from scipy.ndimage import minimum_filter1d, uniform_filter1d
 
 ROOT = Path(__file__).resolve().parent
 SR = 48000
-DUR = 120.0
+DUR = 300.0
 N = int(SR * DUR)
 PAD = 5 * SR                      # room for tails
 BEAT, BAR = 0.5, 2.0
@@ -34,8 +34,8 @@ def hz(name, shift=0):
 # ------------------------------------------------------------------ buses
 class Bus:
     def __init__(self):
-        self.dry = np.zeros((N + PAD, 2))
-        self.send = np.zeros((N + PAD, 2))
+        self.dry = np.zeros((N + PAD, 2), np.float32)
+        self.send = np.zeros((N + PAD, 2), np.float32)
 
 
 def put(bus, t, x, gain=1.0, pan=0.0, send=0.0):
@@ -441,21 +441,45 @@ def lufs(x):
 
 
 # ============================================================== the score
-CHART = ['D5', 'D5', 'Dm', 'C',
-         'Dm', 'Bb', 'F', 'C', 'Bb', 'C',
-         'Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'F', 'C', 'A',
-         'Dm', 'Bb', 'Gm', 'A',
-         'Dm', 'Bb', 'F', 'C',
-         'Dm', 'Dm/C', 'Bb', 'A',
-         'Dm', 'Bb', 'F', 'C',
-         'Dm', 'Bb', 'Gm', 'A',
-         'Dm', 'Bb', 'F', 'C',
-         'Dm', 'Bb', 'A',
-         'Dm', 'Bb', 'F', 'C',
-         'Bb', 'F', 'C',
-         'Dm', 'Bb', 'C',
-         'Asus', 'Dm', 'Bb', 'D']
-assert len(CHART) == 60
+SECTIONS = [  # (first bar, chords) — one bar = 2 s
+    (0, ['D5', 'D5', 'D5', 'Dm', 'Bb', 'F', 'A']),                  # intro
+    (7, ['Dm', 'C']),                                               # act I card
+    (9, ['Dm', 'C', 'Bb', 'A', 'Dm']),                              # 1843
+    (14, ['Dm', 'Bb', 'F', 'C', 'Dm']),                             # 1936
+    (19, ['Dm', 'Bb', 'F', 'C', 'Gm']),                             # 1943
+    (24, ['F', 'C', 'Dm', 'Bb', 'A']),                              # 1950
+    (29, ['Dm', 'Bb', 'F', 'C', 'A']),                              # 1956
+    (34, ['Dm', 'C']),                                              # act II card
+    (36, ['F', 'C', 'Dm', 'Bb', 'C']),                              # 1958
+    (41, ['Dm', 'C', 'Bb', 'C', 'Dm']),                             # 1966
+    (46, ['Dm', 'Dm/C', 'Bb', 'A']),                                # 1969
+    (50, ['Dm', 'Bb', 'Gm', 'A', 'Dm']),                            # 1974
+    (55, ['Dm', 'Bb', 'F', 'C']),                                   # 1980
+    (59, ['Dm', 'Bb', 'F', 'C', 'Dm']),                             # 1986
+    (64, ['Dm', 'Bb', 'F', 'C', 'Dm']),                             # 1989
+    (69, ['Dm', 'Bb', 'Gm', 'A', 'A']),                             # 1997
+    (74, ['Dm', 'C']),                                              # act III card
+    (76, ['Dm', 'Bb', 'F', 'C']),                                   # 2009
+    (80, ['Dm', 'Bb', 'F', 'C']),                                   # 2011
+    (84, ['Dm', 'Bb', 'F', 'C', 'Dm']),                             # 2012
+    (89, ['Gm', 'Dm', 'A', 'Dm', 'Bb']),                            # 2014
+    (94, ['Dm', 'Bb', 'Gm', 'A', 'Dm']),                            # 2016
+    (99, ['Dm', 'Bb', 'F', 'C', 'A']),                              # 2017
+    (104, ['Dm', 'C']),                                             # act IV card
+    (106, ['Dm', 'Bb', 'F', 'C']),                                  # 2020
+    (110, ['F', 'C', 'Dm', 'Bb', 'F']),                             # 2021
+    (115, ['Dm', 'Bb', 'F', 'C', 'A']),                             # 2022 diffusion
+    (120, ['Dm', 'Bb', 'F', 'C', 'Dm']),                            # 2022 ChatGPT
+    (125, ['Bb', 'F', 'C', 'Dm']),                                  # 2023
+    (129, ['Dm', 'Bb', 'F', 'C']),                                  # 2024
+    (133, ['Dm', 'Bb', 'F', 'C', 'Dm', 'A']),                       # 2025
+    (139, ['Asus', 'A', 'Dm', 'Bb', 'F', 'C', 'Bb', 'A', 'D', 'D', 'D']),   # finale
+]
+CHART = []
+for b0, chords in SECTIONS:
+    assert len(CHART) == b0, (b0, len(CHART))
+    CHART += chords
+assert len(CHART) == 150
 CH = {  # pad voicing, bass root, arpeggio notes
     'D5': (['D3', 'A3', 'D4'], 'D2', ['D4', 'A4', 'D5', 'A5']),
     'Dm': (['D3', 'A3', 'D4', 'F4'], 'D2', ['D4', 'F4', 'A4', 'D5']),
@@ -471,9 +495,17 @@ CH = {  # pad voicing, bass root, arpeggio notes
 # the main theme, in beats over a Dm–Bb–F–C phrase
 THEME = [(0, 'A4', 1), (1, 'D5', 1), (2, 'F5', 2), (4, 'G5', 1), (5, 'F5', 1), (6, 'D5', 2),
          (8, 'C5', 1), (9, 'F5', 1), (10, 'A5', 2), (12, 'G5', 1.5), (13.5, 'F5', 0.5), (14, 'E5', 2)]
+# a brighter answer phrase over F–C–Dm–Bb
+THEME2 = [(0, 'C5', 1), (1, 'F5', 1), (2, 'A5', 2), (4, 'G5', 1), (5, 'E5', 1), (6, 'C5', 2),
+          (8, 'D5', 1), (9, 'F5', 1), (10, 'A5', 1.5), (11.5, 'G5', 0.5), (12, 'F5', 2), (14, 'D5', 2)]
 
-A, B, D, S = Bus(), Bus(), Bus(), Bus()      # music <54 s, music >=54 s, side-chained music, sfx
-DUCK = np.ones(N + PAD)
+CRASH = 127.1                                 # the 1987 CRT collapse (tape stop)
+A, B, D, S = Bus(), Bus(), Bus(), Bus()      # music before the crash, after it, side-chained music, sfx
+DUCK = np.ones(N + PAD, np.float32)
+
+
+def M(t):
+    return A if t < CRASH else B
 
 
 def duck(t, depth=0.5, rel=0.16):
@@ -489,12 +521,18 @@ def bar_info(b):
     return b * BAR, padn, root, arp
 
 
+def bars(t0, t1):
+    for b in range(int(round(t0 / BAR)), int(round(t1 / BAR))):
+        yield (b,) + bar_info(b)
+
+
 def four_floor(bus, t, gain=0.6, depth=0.5, tone=50, skip=()):
     for k in range(4):
         if k in skip:
             continue
         put(bus, t + k * BEAT, kick(tone=tone), gain=gain, send=0.03)
-        duck(t + k * BEAT, depth)
+        if depth:
+            duck(t + k * BEAT, depth)
 
 
 def hats16(bus, t, g=0.085, open_=True):
@@ -505,8 +543,13 @@ def hats16(bus, t, g=0.085, open_=True):
             put(bus, t + i * BEAT + 0.25, hat(True), gain=g * 0.7, pan=-0.2, send=0.1)
 
 
-def arp16(bus, t, arp, inst, g, shift=0, pattern=(0, 1, 2, 3, 2, 3, 1, 2), echo=0.35, send=0.3):
-    for i in range(16):
+def hats8(bus, t, g=0.05):
+    for i in range(8):
+        put(bus, t + i * 0.25, hat(), gain=g if i % 2 else g * 0.6, pan=0.3)
+
+
+def arp16(bus, t, arp, inst, g, shift=0, pattern=(0, 1, 2, 3, 2, 3, 1, 2), echo=0.35, send=0.3, n=16):
+    for i in range(n):
         f = hz(arp[pattern[i % len(pattern)]], shift)
         x = inst(f)
         pan = 0.35 if i % 2 else -0.35
@@ -515,69 +558,156 @@ def arp16(bus, t, arp, inst, g, shift=0, pattern=(0, 1, 2, 3, 2, 3, 1, 2), echo=
             put(bus, t + i * 0.125 + 0.375, x, gain=g * echo, pan=-pan * 1.6, send=send)
 
 
-def theme(bus, t0, inst, gain, shift=0, send=0.4, pan=0.0, extra=0.0):
-    for off, nm, d in THEME:
+def theme(bus, t0, inst, gain, shift=0, send=0.4, pan=0.0, extra=0.0, notes=THEME):
+    for off, nm, d in notes:
         put(bus, t0 + off * BEAT, inst(hz(nm, shift), d * BEAT + extra), gain=gain, pan=pan, send=send)
 
 
+def square_pluck(freq, dur=0.25, cutoff=2400):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    y = np.sign(np.sin(TAU * freq * t + 0.3)) * 0.6 + np.sign(np.sin(TAU * freq * 2.003 * t)) * 0.15
+    y *= np.exp(-t * 14) * np.minimum(1, t / 0.002)
+    return fade_tail(filt(y, cutoff), 0.02)
+
+
+def sub_pulse(bus, t, root, gain=0.2, n=8):
+    for i in range(n):
+        put(bus, t + i * 0.25, sub_bass(hz(root), 0.2), gain=gain)
+
+
+def act_card(t0, chord='Dm'):
+    bus = M(t0)
+    padn = CH[chord][0]
+    put(bus, t0, choir(padn, 1.6, attack=0.02, release=1.8), gain=0.32, send=0.75)
+    put(bus, t0, pad(padn + ['A4'], 1.8, attack=0.01, release=1.4, cutoff=3000, detune=0.12), gain=0.26, send=0.6)
+    put(bus, t0, tom(58, 3.2, 1.6), gain=0.5, send=0.5)
+    put(bus, t0, sub_bass(hz(CH[chord][1]), 1.9), gain=0.3)
+    put(bus, t0 + 2.0, pad(CH['C'][0], 2.0, attack=0.6, release=0.5, cutoff=1600), gain=0.18, send=0.6)
+    put(bus, t0 + 1.4, riser(2.6, 220, 9000), gain=0.3, send=0.3)
+    put(bus, t0 + 2.6, rev_cymbal(1.4), gain=0.24)
+    snare_roll(t0 + 3.0, t0 + 4.0, [(t0 + 3.5, 8), (t0 + 4.0, 16)], 0.07, 0.24, bus)
+
+
 def sec_intro():
-    put(A, 0.25, pad(['D2', 'A2', 'D3'], 3.75, attack=2.8, release=0.6, cutoff=650, detune=0.1, hp=40), gain=0.5, send=0.45)
-    put(A, 1.0, pad(['A4', 'D5', 'E5'], 3.0, attack=2.2, release=1.2, cutoff=3200, detune=0.16), gain=0.1, send=0.9)
-    put(A, 2.2, rev_cymbal(1.8), gain=0.3, send=0.3)
-    put(A, 2.0, riser(2.0, 200, 3500), gain=0.22, send=0.3)
-    put(A, 4.0, impact(1.0), gain=0.8, send=0.55)
-    put(A, 4.0, pad(CH['Dm'][0], 2.0, attack=0.03, release=1.4, cutoff=2400), gain=0.34, send=0.55)
-    put(A, 4.0, sub_bass(hz('D2'), 1.95), gain=0.42)
-    for t, nm in [(4.5, 'A5'), (5.0, 'D6'), (5.5, 'F6')]:
+    put(A, 0.25, pad(['D2', 'A2', 'D3'], 5.75, attack=3.0, release=0.8, cutoff=650, detune=0.1, hp=40), gain=0.5, send=0.45)
+    put(A, 1.0, pad(['A4', 'D5', 'E5'], 5.0, attack=3.0, release=1.2, cutoff=3200, detune=0.16), gain=0.08, send=0.9)
+    put(A, 4.2, rev_cymbal(1.8), gain=0.3, send=0.3)
+    put(A, 3.4, riser(2.6, 200, 4000), gain=0.24, send=0.3)
+    for b, t, padn, root, arp in bars(6, 14):
+        put(A, t, pad(padn, BAR, attack=0.03 if b == 3 else 0.3, release=1.3, cutoff=2400), gain=0.3, send=0.55)
+        put(A, t, sub_bass(hz(root), 1.95), gain=0.36)
+        if b >= 4:
+            for i, pi in enumerate((0, 1, 2, 3, 2, 1, 2, 3)):
+                put(A, t + i * 0.25, bell(hz(arp[pi], 12), 1.2, MUSICBOX, t60=0.9), gain=0.05 * (1.15 if i % 2 == 0 else 0.8),
+                    pan=0.35 if i % 2 else -0.35, send=0.5)
+    for t, nm in [(6.5, 'A5'), (7.0, 'D6'), (7.5, 'F6'), (8.5, 'E6'), (9.0, 'D6')]:
         put(A, t, bell(hz(nm), 3.0, CELESTA, t60=2.4), gain=0.12, pan=0.25, send=0.7)
-    put(A, 6.0, pad(CH['C'][0], 2.0, attack=0.25, release=1.2, cutoff=2000), gain=0.3, send=0.55)
-    put(A, 6.0, sub_bass(hz('C2'), 1.95), gain=0.36)
-    put(A, 6.8, whoosh(1.3, 300, 5000), gain=0.42, send=0.3)
+    put(A, 11.0, riser(3.0, 250, 9000), gain=0.3, send=0.3)
+    put(A, 12.6, rev_cymbal(1.4), gain=0.24)
+    snare_roll(13.0, 14.0, [(13.5, 8), (14.0, 16)], 0.07, 0.24, A)
 
 
-def sec_early():
-    for b in range(4, 19):
-        t, padn, root, arp = bar_info(b)
-        put(A, t, pad(padn, BAR, attack=0.25, release=0.9, cutoff=1500 + 500 * (b >= 10), detune=0.07), gain=0.24, send=0.45)
+def sec_act1():
+    for b, t, padn, root, arp in bars(18, 28):                      # 1843: clockwork
+        put(A, t, pad(padn, BAR, attack=0.3, release=1.0, cutoff=1300, detune=0.07), gain=0.2, send=0.5)
         for off in (0.0, 1.0):
-            put(A, t + off, ks(hz(root, 12), 0.9, bright=0.35, t60=0.7), gain=0.42, send=0.2)
+            put(A, t + off, ks(hz(root, 12), 0.9, bright=0.35, t60=0.7), gain=0.4, send=0.2)
         for i, pi in enumerate((0, 1, 2, 3, 2, 1, 2, 3)):
             put(A, t + i * 0.25, bell(hz(arp[pi], 12), 1.2, MUSICBOX, t60=0.9), gain=0.06 * (1.15 if i % 2 == 0 else 0.8),
                 pan=0.35 if i % 2 else -0.35, send=0.45)
-        if b >= 10:
-            put(A, t, kick(tone=48, decay=7.5, click=0.1), gain=0.34, send=0.04)
-            put(A, t + 1.0, kick(tone=48, decay=7.5, click=0.1), gain=0.24)
-        if b >= 13:
+        for i in range(4):
+            put(A, t + i * BEAT, clock_tick(i % 2 == 0), gain=0.07, pan=0.4)
+    for b, t, padn, root, arp in bars(28, 38):                      # 1936: the machine starts running
+        put(A, t, pad(padn, BAR, attack=0.25, release=0.9, cutoff=1800, detune=0.07), gain=0.3, send=0.45)
+        for i in range(8):
+            put(A, t + i * 0.25, ks(hz(root if i % 4 == 0 else arp[i % 4], 12 if i % 4 == 0 else 0), 0.5, bright=0.5, t60=0.35),
+                gain=0.3 if i % 2 == 0 else 0.2, pan=-0.3 if i % 2 else 0.3, send=0.2)
+        for i, pi in enumerate((0, 2, 1, 3)):
+            put(A, t + i * BEAT + 0.25, bell(hz(arp[pi], 12), 1.0, MUSICBOX, t60=0.8), gain=0.05, pan=0.3, send=0.4)
+        put(A, t, kick(tone=48, decay=7.5, click=0.1), gain=0.36, send=0.04)
+        put(A, t + 1.0, kick(tone=48, decay=7.5, click=0.1), gain=0.26)
+        if b >= 16:
             for i in range(8):
-                put(A, t + i * 0.25 + 0.125, shaker(), gain=0.05 if i % 2 else 0.035, pan=0.3)
-            for i in range(4):
-                put(A, t + i * 0.5 + 0.25, hat(), gain=0.04, pan=-0.25)
-    theme(A, 20.0, lambda f, d: bell(f, d + 1.6, CELESTA, t60=1.8), 0.2, send=0.5, pan=0.1)
-    theme(A, 28.0, lambda f, d: piano(f, d + 1.2, vel=0.6), 0.18, shift=-12, send=0.45, pan=-0.15)
-    put(A, 18.5, rev_cymbal(1.5), gain=0.22, send=0.3)
-    put(A, 20.0, impact(0.8), gain=0.55, send=0.55)
+                put(A, t + i * 0.25 + 0.125, shaker(), gain=0.045 if i % 2 else 0.03, pan=0.3)
+    for b, t, padn, root, arp in bars(38, 48):                      # 1943: the neuron
+        put(A, t, pad(padn, BAR, attack=0.25, release=0.9, cutoff=1800, detune=0.07), gain=0.23, send=0.45)
+        for off in (0.0, 1.0):
+            put(A, t + off, ks(hz(root, 12), 0.9, bright=0.35, t60=0.7), gain=0.4, send=0.2)
+        put(A, t, kick(tone=48, decay=7.5, click=0.1), gain=0.32, send=0.04)
+        put(A, t + 1.0, kick(tone=48, decay=7.5, click=0.1), gain=0.24)
+        for i in range(8):
+            put(A, t + i * 0.25 + 0.125, shaker(), gain=0.05 if i % 2 else 0.035, pan=0.3)
+        for i in range(4):
+            put(A, t + i * 0.5 + 0.25, hat(), gain=0.04, pan=-0.25)
+    theme(A, 40.0, lambda f, d: piano(f, d + 1.2, vel=0.6), 0.2, shift=-12, send=0.45, pan=-0.15)
+    for b, t, padn, root, arp in bars(48, 58):                      # 1950: the question (typewriter carries the rhythm)
+        put(A, t, pad(padn, BAR, attack=0.4, release=1.2, cutoff=1400, detune=0.08), gain=0.2, send=0.6)
+        put(A, t, sub_bass(hz(root), BAR - 0.05, drive=1.1), gain=0.14)
+        for i, nm in enumerate(padn[1:]):
+            put(A, t + i * 0.12, piano(hz(nm, 12), 1.6, vel=0.45), gain=0.1, pan=-0.2 + 0.2 * i, send=0.55)
+    theme(A, 50.0, lambda f, d: bell(f, d + 1.6, CELESTA, t60=1.8), 0.18, send=0.55, pan=0.1, notes=THEME2)
+    put(A, 58.0, impact(0.9), gain=0.6, send=0.6)                      # 1956: the birth
+    for b, t, padn, root, arp in bars(58, 68):
+        put(A, t, pad(padn, BAR, attack=0.1, release=1.0, cutoff=2600, detune=0.1), gain=0.26, send=0.5)
+        put(A, t, choir(padn, BAR, attack=0.3, release=1.2), gain=0.22, send=0.6)
+        put(A, t, sub_bass(hz(root), BAR - 0.05), gain=0.22)
+        put(A, t, kick(tone=48, decay=6), gain=0.5, send=0.05)
+        put(A, t + 1.0, snare(dur=0.4), gain=0.26, send=0.45)
+        hats8(A, t, 0.04)
+    theme(A, 60.0, lambda f, d: bell(f, d + 1.4, CELESTA, t60=1.8), 0.2, send=0.5, pan=0.1)
+    theme(A, 60.0, lambda f, d: piano(f, d + 1.2, vel=0.7), 0.16, shift=-12, send=0.45, pan=-0.15)
 
 
-def sec_winter():
-    for b in range(19, 23):
-        t, padn, root, arp = bar_info(b)
+def sec_act2():
+    for b, t, padn, root, arp in bars(72, 82):                      # 1958: optimism
+        put(A, t, pad(padn, BAR, attack=0.05, release=0.8, cutoff=2600, detune=0.1), gain=0.22, send=0.45)
+        four_floor(A, t, 0.46, 0)
+        for k in (1, 3):
+            put(A, t + k * BEAT, clap(), gain=0.2, send=0.25)
+        hats8(A, t, 0.05)
+        sub_pulse(A, t, root, 0.16)
+        arp16(A, t, arp, lambda f: pluck(f, 0.25, 3200, 0.16), 0.06, shift=12, send=0.3)
+    for b, t, padn, root, arp in bars(82, 92):                      # 1966: retro computer bleeps
+        put(A, t, pad(padn, BAR, attack=0.1, release=0.8, cutoff=2200, detune=0.08), gain=0.26, send=0.45)
+        put(A, t, kick(tone=50, decay=7), gain=0.46, send=0.03)
+        put(A, t + 1.0, kick(tone=50, decay=7), gain=0.3)
+        put(A, t + 0.5, clap(), gain=0.14, send=0.3)
+        put(A, t + 1.5, clap(), gain=0.14, send=0.3)
+        hats8(A, t, 0.04)
+        sub_pulse(A, t, root, 0.15)
+        arp16(A, t, arp, lambda f: square_pluck(f, 0.2, 2600), 0.075, shift=12, pattern=(0, 2, 1, 3), send=0.25, n=16, echo=0.3)
+    for b, t, padn, root, arp in bars(92, 100):                     # 1969: doubt
+        put(A, t, pad(padn + ['Eb4'], BAR, attack=0.4, release=1.2, cutoff=1100, detune=0.14), gain=0.2, send=0.6)
+        if t < 97.5:
+            sub_pulse(A, t, root, 0.2)
+            put(A, t, kick(tone=46, decay=6), gain=0.42)
+            for i in range(8):
+                put(A, t + i * 0.25, string_stab(hz(root, 12), 0.2, cutoff=700), gain=0.08, send=0.3)
+    put(A, 98.4, whoosh(1.6, 3000, 250), gain=0.3, send=0.5)
+    for b, t, padn, root, arp in bars(100, 110):                    # 1974: winter
         put(A, t, pad(padn, BAR, attack=0.7, release=1.6, cutoff=850, detune=0.1), gain=0.15, send=0.7)
         put(A, t, sub_bass(hz(root), BAR - 0.05, drive=1.1), gain=0.1)
-    put(A, 37.4, wind(9.4), gain=0.16, send=0.25)
-    for t, nm in [(38.5, 'A4'), (39.25, 'F4'), (40.0, 'D4'), (41.0, 'F4'), (42.0, 'Bb4'), (42.75, 'A4'), (43.5, 'G4'),
-                  (44.25, 'E4'), (45.0, 'C#5')]:
+    put(A, 99.4, wind(11.0), gain=0.16, send=0.25)
+    for t, nm in [(100.5, 'A4'), (101.25, 'F4'), (102.0, 'D4'), (103.0, 'F4'), (104.0, 'Bb4'), (104.75, 'A4'), (105.5, 'G4'),
+                  (106.25, 'E4'), (107.0, 'C#5'), (108.0, 'D5'), (108.75, 'A4'), (109.5, 'F4')]:
         put(A, t, piano(hz(nm), 3.0, vel=0.5, t60=3.5), gain=0.14, pan=0.15, send=0.7)
     for k, nm in enumerate(['D6', 'A6', 'E6', 'F6']):
-        n = int(7.5 * SR)
+        n = int(9.5 * SR)
         tt = np.arange(n) / SR
-        g = sine(hz(nm), n) * (0.5 + 0.5 * np.sin(TAU * (0.3 + k * 0.11) * tt)) * np.minimum(1, tt / 2) * np.minimum(1, (7.5 - tt) / 1.5)
-        put(A, 38.3 + k * 0.2, g, gain=0.018, pan=-0.6 + k * 0.4, send=0.9)
-    put(A, 45.2, riser(0.8, 150, 5000, tone=0.6), gain=0.3, send=0.2)
-
-
-def sec_80s():
-    for b in range(23, 27):
-        t, padn, root, arp = bar_info(b)
+        g = sine(hz(nm), n) * (0.5 + 0.5 * np.sin(TAU * (0.3 + k * 0.11) * tt)) * np.minimum(1, tt / 2) * np.minimum(1, (9.5 - tt) / 1.5)
+        put(A, 100.3 + k * 0.2, g, gain=0.018, pan=-0.6 + k * 0.4, send=0.9)
+    for b, t, padn, root, arp in bars(110, 118):                    # 1980: the boom
+        u = (t - 110) / 6
+        put(A, t, pad(padn, BAR, attack=0.05, release=0.6, cutoff=1500 + 1800 * u, detune=0.12), gain=0.2, send=0.4)
+        arp16(A, t, arp, lambda f, u=u: pluck(f, 0.25, 1400 + 2600 * u, 0.15), 0.065, shift=12, send=0.3)
+        for i in range(8):
+            put(A, t + i * 0.25, saw_bass(hz(root, 12 if i % 2 else 0), 0.21, cutoff=700 + 400 * u), gain=0.24)
+        if t >= 112:
+            four_floor(A, t, 0.5, 0)
+            hats8(A, t, 0.05)
+    put(A, 116.2, riser(1.8, 300, 7000), gain=0.25, send=0.3)
+    for b, t, padn, root, arp in bars(118, 128):                    # 1986: synthwave
         put(A, t, pad(padn, BAR, attack=0.02, release=0.5, cutoff=3300, detune=0.13), gain=0.2, send=0.35)
         for i in range(8):
             put(A, t + i * 0.25, saw_bass(hz(root, 12 if i % 2 else 0), 0.21, cutoff=950), gain=0.3)
@@ -585,33 +715,61 @@ def sec_80s():
             put(A, t + k * BEAT, kick(tone=52, decay=8), gain=0.58, send=0.03)
         for k in (1, 3):
             put(A, t + k * BEAT, gated_snare(), gain=0.36)
-        for i in range(8):
-            put(A, t + i * 0.25, hat(), gain=0.06 if i % 2 else 0.035, pan=0.3)
+        hats8(A, t, 0.06)
         arp16(A, t, arp, lambda f: pluck(f, 0.3, 2600, 0.22), 0.07, shift=12, send=0.25)
-    theme(A, 46.0, lambda f, d: lead(f, d, 2600), 0.13, shift=-12, send=0.35)
-
-
-def sec_1997():
-    for i in range(32):
-        put(B, 54.0 + i * 0.25, clock_tick(i % 2 == 0), gain=0.1 if i % 2 == 0 else 0.07, pan=0.25)
-    for b in range(27, 31):
-        t, padn, root, arp = bar_info(b)
+    theme(A, 118.0, lambda f, d: lead(f, d, 2600), 0.13, shift=-12, send=0.35)
+    for b, t, padn, root, arp in bars(128, 138):                    # 1989: rebuilding in the cold
+        u = (t - 128) / 8
+        put(B, t, pad(padn, BAR, attack=0.4, release=1.0, cutoff=700 + 1400 * u, detune=0.09), gain=0.22, send=0.55)
+        put(B, t, sub_bass(hz(root), BAR - 0.05, drive=1.2), gain=0.16)
         for i in range(8):
-            k = (b - 27) * 8 + i
-            put(B, t + i * 0.25, string_stab(hz(root, 12 if i % 2 else 24), 0.22, cutoff=450 + 1700 * k / 32), gain=0.2, send=0.3)
+            put(B, t + i * 0.25, clock_tick(i % 2 == 0), gain=0.05 if i % 2 == 0 else 0.035, pan=0.3)
+        for i, pi in enumerate((0, 2, 1, 3)):
+            put(B, t + i * BEAT + 0.25, bell(hz(arp[pi], 12), 1.4, CELESTA, t60=1.0), gain=0.05, pan=-0.3 + 0.2 * i, send=0.55)
+        if t >= 132:
+            put(B, t, kick(tone=48, decay=7), gain=0.4, send=0.03)
+            put(B, t + 1.0, kick(tone=48, decay=7), gain=0.3)
+            put(B, t + 1.5, clap(), gain=0.14, send=0.35)
+    for i in range(40):                                             # 1997: the clock is ticking
+        put(B, 138.0 + i * 0.25, clock_tick(i % 2 == 0), gain=0.1 if i % 2 == 0 else 0.07, pan=0.25)
+    for b, t, padn, root, arp in bars(138, 148):
+        for i in range(8):
+            k = (b - 69) * 8 + i
+            put(B, t + i * 0.25, string_stab(hz(root, 12 if i % 2 else 24), 0.22, cutoff=450 + 2000 * k / 40), gain=0.2, send=0.3)
         put(B, t, pad(padn, BAR, attack=0.4, release=1.0, cutoff=1100, detune=0.09), gain=0.22, send=0.5)
         put(B, t, sub_bass(hz(root), BAR - 0.05), gain=0.18)
-    put(B, 60.0, impact(0.7), gain=0.5, send=0.5)
-    put(B, 60.0, tom(62, 3.5, 1.4), gain=0.45, send=0.4)
-    put(B, 60.2, riser(1.8, 300, 8000), gain=0.3, send=0.3)
-    put(B, 60.5, rev_cymbal(1.5), gain=0.26)
-    snare_roll(61.0, 62.0, [(61.5, 8), (62.0, 16)], 0.08, 0.26, B)
+        if t >= 142:
+            put(B, t, kick(tone=48, decay=6), gain=0.45)
+    put(B, 145.55, tom(62, 3.5, 1.4), gain=0.45, send=0.4)
+    put(B, 145.4, riser(2.6, 300, 8000), gain=0.28, send=0.3)
+    put(B, 146.6, rev_cymbal(1.4), gain=0.26)
+    snare_roll(147.0, 148.0, [(147.5, 8), (148.0, 16)], 0.08, 0.26, B)
 
 
-def sec_2012():
-    put(B, 62.0, impact(1.2), gain=0.85, send=0.6)
-    for b in range(31, 35):
-        t, padn, root, arp = bar_info(b)
+def sec_act3():
+    for b, t, padn, root, arp in bars(152, 160):                    # 2009: data pours in
+        u = (t - 152) / 6
+        put(B, t, pad(padn, BAR, attack=0.1, release=0.8, cutoff=1200 + 2000 * u, detune=0.1), gain=0.22, send=0.45)
+        arp16(B, t, arp, lambda f, u=u: pluck(f, 0.25, 900 + 3500 * u, 0.16), 0.07, shift=12, send=0.3)
+        sub_pulse(B, t, root, 0.16)
+        hats16(B, t, 0.05, open_=False)
+        if t >= 156:
+            four_floor(B, t, 0.5, 0)
+    put(B, 158.0, riser(2.0, 300, 7000), gain=0.22, send=0.3)
+    for b, t, padn, root, arp in bars(160, 168):                    # 2011: game show groove
+        four_floor(B, t, 0.56, 0.45)
+        for k in (1, 3):
+            put(B, t + k * BEAT, clap(), gain=0.28, send=0.2)
+        hats16(B, t, 0.055)
+        for i in range(8):
+            put(D, t + i * 0.25, sub_bass(hz(root), 0.2), gain=0.18)
+        put(D, t, pad(padn, BAR, attack=0.02, release=0.7, cutoff=2400), gain=0.22, send=0.4)
+        for i, pi in enumerate((0, 1, 2, 3)):
+            put(B, t + i * BEAT, bell(hz(arp[pi], 12), 1.2, CELESTA, t60=0.8), gain=0.06, pan=-0.3 + 0.2 * i, send=0.4)
+    put(B, 166.4, riser(1.6, 300, 9000), gain=0.3, send=0.3)
+    snare_roll(167.0, 168.0, [(167.5, 8), (168.0, 16)], 0.08, 0.28, B)
+    put(B, 168.0, impact(1.2), gain=0.85, send=0.6)                   # 2012: the big bang
+    for b, t, padn, root, arp in bars(168, 178):
         four_floor(B, t, 0.62, 0.55)
         for k in (1, 3):
             put(B, t + k * BEAT, clap(), gain=0.34, send=0.2)
@@ -620,58 +778,75 @@ def sec_2012():
             put(D, t + i * 0.25, sub_bass(hz(root), 0.2), gain=0.2)
         put(D, t, pad(padn, BAR, attack=0.02, release=0.7, cutoff=2800), gain=0.24, send=0.4)
         arp16(B, t, arp, lambda f: pluck(f, 0.25, 3800, 0.16), 0.075, shift=12, send=0.3)
-
-
-def sec_2016():
-    taiko = [0, 0.75, 1.5, 2.0, 3.0, 3.5]
-    for b in range(35, 39):
-        t, padn, root, arp = bar_info(b)
-        put(B, t, choir(padn, BAR, attack=0.3, release=1.2), gain=0.46, send=0.6)
-        put(B, t, pad(padn, BAR, attack=0.2, release=1.0, cutoff=2200, detune=0.1), gain=0.24, send=0.5)
+    theme(B, 170.0, lambda f, d: lead(f, d, 3200), 0.12, send=0.35)
+    for b, t, padn, root, arp in bars(178, 188):                    # 2014: forger vs detective, call and response
+        put(B, t, pad(padn, BAR, attack=0.1, release=0.9, cutoff=1600, detune=0.12), gain=0.2, send=0.5)
+        put(B, t, kick(tone=48, decay=7), gain=0.5, send=0.03)
+        put(B, t + 1.0, snare(dur=0.3), gain=0.24, send=0.3)
+        put(B, t + 1.25, kick(tone=48, decay=7), gain=0.34)
+        hats8(B, t, 0.05)
+        sub_pulse(B, t, root, 0.17)
+        for i in range(8):
+            gen = i % 2 == 0
+            nm = arp[(0, 2, 1, 3)[(i // 2) % 4]]
+            x = fm(hz(nm, 12 if gen else 19), 0.35, 2.0 if gen else 3.5, 1.6, 0.3)
+            put(B, t + i * 0.25, x, gain=0.06, pan=-0.6 if gen else 0.6, send=0.3)
+    taiko = [0, 0.75, 1.5, 2.0, 3.0, 3.5]                               # 2016: taiko and choir
+    for b, t, padn, root, arp in bars(188, 198):
+        put(B, t, choir(padn, BAR, attack=0.3, release=1.2), gain=0.44, send=0.6)
+        put(B, t, pad(padn, BAR, attack=0.2, release=1.0, cutoff=2200, detune=0.1), gain=0.22, send=0.5)
         put(B, t, sub_bass(hz(root), BAR - 0.05), gain=0.15)
+        breath = 192.0 <= t < 194.0
         for k in taiko:
-            if b == 36 and k >= 3:
-                continue                                  # a breath before move 37
+            if breath and k >= 2.5:
+                continue
             put(B, t + k * BEAT, filt(tom(66 if k in (0, 2) else 92, 4.0, 1.0), 50, 'high'), gain=0.3 if k in (0, 2) else 0.22, send=0.35)
-        if b != 36:
+        if not breath:
             for i in range(8):
                 put(B, t + i * 0.25, string_stab(hz(arp[(0, 2, 1, 3)[i % 4]]), 0.2, 2400), gain=0.1, pan=0.3 if i % 2 else -0.3, send=0.35)
-    put(B, 74.0, impact(1.0), gain=0.62, send=0.6)
-    put(B, 73.3, rev_cymbal(0.7), gain=0.2)
-    put(B, 74.0, choir(['D4', 'G4', 'Bb4', 'D5'], 2.0, attack=0.05, release=1.6, vowel='o'), gain=0.2, send=0.7)
-
-
-def sec_2017():
-    for b in range(39, 43):
-        t, padn, root, arp = bar_info(b)
+    put(B, 193.0, rev_cymbal(0.7), gain=0.2)
+    put(B, 193.7, choir(['D4', 'G4', 'Bb4', 'D5'], 2.0, attack=0.05, release=1.6, vowel='o'), gain=0.2, send=0.7)
+    for b, t, padn, root, arp in bars(198, 208):                    # 2017: attention
         put(B, t, pad(padn, BAR, attack=0.3, release=1.2, cutoff=2400, detune=0.12), gain=0.2, send=0.6)
         put(B, t, sub_bass(hz(root), BAR - 0.05), gain=0.18)
         arp16(B, t, arp, lambda f: fm(f, 0.6, 3.0, 1.6, 0.5), 0.07, shift=12, pattern=(0, 2, 1, 3, 2, 0, 3, 1), send=0.45)
         put(B, t, kick(tone=48, decay=7), gain=0.46, send=0.03)
         put(B, t + 1.0, kick(tone=48, decay=7), gain=0.36)
         put(B, t + 1.5, clap(), gain=0.18, send=0.35)
-        for i in range(8):
-            put(B, t + i * 0.25, hat(), gain=0.045 if i % 2 else 0.028, pan=0.25)
+        hats8(B, t, 0.045)
 
 
-def sec_2020():
-    for b in range(43, 46):
-        t, padn, root, arp = bar_info(b)
-        u = (b - 43) / 2
+def sec_act4():
+    for b, t, padn, root, arp in bars(212, 220):                    # 2020: scale
+        u = (t - 212) / 6
         put(B, t, pad(padn, BAR, attack=0.05, release=0.6, cutoff=900 + 3000 * u), gain=0.24, send=0.4)
-        for i in range(8):
-            put(B, t + i * 0.25, sub_bass(hz(root), 0.2), gain=0.2)
-        four_floor(B, t, 0.55, 0.0, skip=(3,) if b == 45 else ())
+        sub_pulse(B, t, root, 0.2)
+        four_floor(B, t, 0.52, 0.0, skip=(3,) if t == 218 else ())
         arp16(B, t, arp, lambda f, u=u: pluck(f, 0.25, 1200 + 3500 * u, 0.16), 0.065, shift=12, send=0.3)
-    snare_roll(86.0, 91.5, [(88.0, 4), (90.0, 8), (91.0, 16), (91.5, 32)], 0.07, 0.34, B, 170, 260)
-    put(B, 87.0, riser(4.9, 200, 10000), gain=0.34, send=0.3)
-    put(B, 90.4, rev_cymbal(1.5), gain=0.3)
-
-
-def sec_2022():
-    put(B, 92.0, impact(1.3), gain=0.85, send=0.6)
-    for b in range(46, 50):
-        t, padn, root, arp = bar_info(b)
+    snare_roll(214.0, 219.6, [(216.0, 4), (218.0, 8), (219.0, 16), (219.6, 32)], 0.06, 0.3, B, 170, 260)
+    put(B, 215.0, riser(4.8, 200, 10000), gain=0.3, send=0.3)
+    put(B, 218.5, rev_cymbal(1.5), gain=0.26)
+    for b, t, padn, root, arp in bars(220, 230):                    # 2021: wonder
+        put(B, t, choir(padn, BAR, attack=0.4, release=1.4), gain=0.3, send=0.7)
+        put(B, t, pad(padn, BAR, attack=0.3, release=1.2, cutoff=2000, detune=0.1), gain=0.18, send=0.6)
+        put(B, t, sub_bass(hz(root), BAR - 0.05), gain=0.14)
+        put(B, t, kick(tone=46, decay=6), gain=0.38, send=0.05)
+        for i, pi in enumerate((0, 1, 2, 3, 2, 3, 1, 2)):
+            put(B, t + i * 0.25, bell(hz(arp[pi], 12), 1.6, CELESTA, t60=1.3), gain=0.05 * (1.2 if i % 2 == 0 else 0.8),
+                pan=0.4 if i % 2 else -0.4, send=0.6)
+    theme(B, 222.0, lambda f, d: piano(f, d + 1.5, vel=0.6), 0.17, shift=-12, send=0.55, notes=THEME2)
+    for b, t, padn, root, arp in bars(230, 240):                    # 2022: noise becomes a picture
+        u = (t - 230) / 8
+        put(B, t, pad(padn, BAR, attack=0.1, release=0.8, cutoff=1400 + 2600 * u, detune=0.12), gain=0.22, send=0.45)
+        arp16(B, t, arp, lambda f: fm(f, 0.45, 2.0, 1.4, 0.35), 0.06, shift=12, send=0.4)
+        sub_pulse(B, t, root, 0.17)
+        hats16(B, t, 0.045, open_=False)
+        if t >= 234:
+            four_floor(B, t, 0.5, 0, skip=(3,) if t == 238 else ())
+    put(B, 236.0, riser(4.0, 200, 11000), gain=0.32, send=0.3)
+    snare_roll(237.0, 239.8, [(238.0, 4), (239.0, 8), (239.5, 16), (239.8, 32)], 0.07, 0.32, B, 170, 260)
+    put(B, 240.0, impact(1.3), gain=0.9, send=0.6)                   # 2022: the drop
+    for b, t, padn, root, arp in bars(240, 258):
         four_floor(B, t, 0.64, 0.55)
         for k in (1, 3):
             put(B, t + k * BEAT, clap(), gain=0.36, send=0.2)
@@ -681,90 +856,89 @@ def sec_2022():
             put(D, t + i * 0.25, saw_bass(hz(root, 12 if i % 2 else 0), 0.21, cutoff=1100), gain=0.3)
             put(D, t + i * 0.25, sub_bass(hz(root), 0.2), gain=0.16)
         put(D, t, pad(padn, BAR, attack=0.02, release=0.8, cutoff=3500, detune=0.13), gain=0.24, send=0.4)
-        arp16(B, t, arp, lambda f: pluck(f, 0.25, 4200, 0.15), 0.065, shift=12, send=0.3)
-    theme(B, 92.0, lambda f, d: lead(f, d, 3600), 0.2, send=0.35)
-    theme(B, 92.0, lambda f, d: bell(f, d + 1.0, CELESTA, t60=1.2), 0.07, shift=12, send=0.4, pan=0.3)
-
-
-def sec_2024():
-    for b in range(50, 53):
-        t, padn, root, arp = bar_info(b)
-        put(B, t, choir(padn, BAR, attack=0.15, release=1.4), gain=0.24, send=0.6)
+        arp16(B, t, arp, lambda f: pluck(f, 0.25, 4200, 0.15), 0.065, shift=24 if t >= 250 else 12, send=0.3)
+    theme(B, 240.0, lambda f, d: lead(f, d, 3600), 0.2, send=0.35)
+    theme(B, 240.0, lambda f, d: bell(f, d + 1.0, CELESTA, t60=1.2), 0.07, shift=12, send=0.4, pan=0.3)
+    theme(B, 250.0, lambda f, d: lead(f, d, 3800), 0.16, send=0.35, notes=THEME2)
+    put(B, 256.6, rev_cymbal(1.4), gain=0.24)
+    for b, t, padn, root, arp in bars(258, 266):                    # 2024: honours
+        put(B, t, choir(padn, BAR, attack=0.15, release=1.4), gain=0.26, send=0.6)
         put(B, t, pad(padn, BAR, attack=0.05, release=1.2, cutoff=2600, detune=0.1), gain=0.2, send=0.5)
         put(B, t, sub_bass(hz(root), BAR - 0.05), gain=0.2)
         put(B, t, kick(tone=48, decay=6), gain=0.52, send=0.05)
         put(B, t + 1.0, snare(dur=0.4), gain=0.3, send=0.45)
-        for i in range(8):
-            put(B, t + i * 0.25, hat(), gain=0.04 if i % 2 else 0.025, pan=0.25)
+        hats8(B, t, 0.04)
         for i, pi in enumerate((0, 1, 2, 3)):
             put(B, t + i * BEAT, bell(hz(arp[pi], 12), 2.0, CELESTA, t60=1.6), gain=0.08, pan=-0.3 + 0.2 * i, send=0.6)
-
-
-def sec_2025():
-    for b in range(53, 56):
-        t, padn, root, arp = bar_info(b)
-        four_floor(B, t, 0.6, 0.5)
-        hats16(B, t, 0.06, open_=b != 55)
+    for b, t, padn, root, arp in bars(266, 278):                    # 2025: reasoning, then agents at work
+        four_floor(B, t, 0.6, 0.5, skip=(3,) if t == 276 else ())
+        hats16(B, t, 0.06, open_=t < 276)
         for i in range(8):
             put(D, t + i * 0.25, sub_bass(hz(root), 0.2), gain=0.19)
         put(D, t, pad(padn, BAR, attack=0.02, release=0.7, cutoff=3000), gain=0.22, send=0.45)
         arp16(B, t, arp, lambda f: fm(f, 0.4, 2.0, 1.8, 0.35), 0.075, shift=12, send=0.35)
         put(B, t + 1.0, clap(), gain=0.3, send=0.25)
-    put(B, 110.0, riser(2.0, 250, 9000), gain=0.32, send=0.3)
-    snare_roll(111.0, 112.0, [(111.5, 8), (112.0, 16)], 0.1, 0.3, B)
+    put(B, 274.0, riser(4.0, 250, 9000), gain=0.3, send=0.3)
+    snare_roll(276.0, 278.0, [(277.0, 8), (277.5, 16), (278.0, 32)], 0.08, 0.3, B)
 
 
 def sec_finale():
-    put(B, 111.6, whoosh(2.4, 200, 6000), gain=0.34, send=0.3)
-    put(B, 112.0, pad(CH['Asus'][0], 1.0, attack=0.05, release=0.4, cutoff=2600), gain=0.26, send=0.5)
-    put(B, 113.0, pad(CH['A'][0], 1.0, attack=0.05, release=0.4, cutoff=3200), gain=0.28, send=0.5)
-    put(B, 112.0, sub_bass(hz('A1'), 1.95), gain=0.22)
-    put(B, 112.0, riser(2.0, 400, 9000), gain=0.22, send=0.3)
-    t = 112.0
-    while t < 114.0:
-        u = (t - 112) / 2
-        put(B, t, tom(80 + 60 * u, 6, 0.5), gain=0.18 + 0.2 * u, send=0.3)
-        t += 0.25 if u < 0.5 else 0.125
-    put(B, 114.0, impact(1.3), gain=0.9, send=0.7)
-    for t0, name, dur in [(114.0, 'Dm', 2.0), (116.0, 'Bb', 2.0), (118.0, 'D', 1.6)]:
-        padn, root, _ = CH[name]
-        rel = 1.6 if name != 'D' else 0.5
-        put(B, t0, choir(padn, dur, attack=0.05 if t0 == 114 else 0.3, release=rel), gain=0.26, send=0.7)
-        put(B, t0, pad(padn + ['A4'], dur, attack=0.05, release=rel, cutoff=2600, detune=0.1), gain=0.2, send=0.6)
-        put(B, t0, sub_bass(hz(root), dur - 0.05), gain=0.24)
-    for t0, nm in [(114.0, 'A4'), (114.5, 'D5'), (115.0, 'F5'), (116.0, 'G5'), (116.5, 'F5'), (117.0, 'D5'),
-                   (118.0, 'F#5'), (118.03, 'A5'), (118.06, 'D6')]:
-        put(B, t0, piano(hz(nm), 2.5, vel=0.75, t60=3.0), gain=0.3, pan=0.1, send=0.65)
-    put(B, 118.5, rev_cymbal(0.8), gain=0.16)
-    put(B, 119.3, bell(hz('D6'), 0.7, CELESTA, t60=1.2), gain=0.12, send=0.8)
-
-
-def sec_whooshes():
-    for tb in (14, 26, 32, 70, 78, 86, 100, 106):
-        put(A if tb < 54 else B, tb - 0.45, whoosh(0.9, 350, 3500), gain=0.13, send=0.2)
-    put(A, 37.5, whoosh(1.2, 2500, 400), gain=0.2, send=0.4)
+    put(B, 277.6, whoosh(2.4, 200, 6000), gain=0.32, send=0.3)
+    put(B, 278.0, pad(CH['Asus'][0], 2.0, attack=0.05, release=0.4, cutoff=2600), gain=0.24, send=0.5)
+    put(B, 280.0, pad(CH['A'][0], 2.0, attack=0.05, release=0.4, cutoff=3200), gain=0.26, send=0.5)
+    put(B, 278.0, sub_bass(hz('A1'), 3.95), gain=0.2)
+    put(B, 278.0, riser(4.0, 300, 10000), gain=0.26, send=0.3)
+    t = 278.0
+    while t < 282.0:
+        u = (t - 278) / 4
+        put(B, t, tom(80 + 60 * u, 6, 0.5), gain=0.16 + 0.22 * u, send=0.3)
+        t += 0.5 if u < 0.5 else 0.25 if u < 0.8 else 0.125
+    for b, tb, padn, root, arp in bars(282, 294):
+        name = CHART[b]
+        put(B, tb, choir(padn, BAR, attack=0.05 if tb == 282 else 0.3, release=1.6), gain=0.28, send=0.7)
+        put(B, tb, pad(padn + ['A4'], BAR, attack=0.05, release=1.4, cutoff=2600, detune=0.1), gain=0.2, send=0.6)
+        put(B, tb, sub_bass(hz(root), BAR - 0.05), gain=0.22)
+        put(B, tb, filt(tom(56, 3.0, 1.2), 40, 'high'), gain=0.36, send=0.5)
+        if name != 'A':
+            for i, pi in enumerate((0, 1, 2, 3, 2, 1, 2, 3)):
+                put(B, tb + i * 0.25, bell(hz(arp[pi], 12), 1.4, CELESTA, t60=1.0), gain=0.04, pan=0.35 if i % 2 else -0.35, send=0.6)
+    theme(B, 282.0, lambda f, d: piano(f, d + 1.4, vel=0.75), 0.28, send=0.6, pan=0.1)
+    theme(B, 282.0, lambda f, d: lead(f, d, 2400), 0.07, shift=-12, send=0.5)
+    put(B, 290.0, piano(hz('Bb4'), 2.5, vel=0.6), gain=0.22, send=0.6)
+    put(B, 292.0, piano(hz('A4'), 2.5, vel=0.6), gain=0.22, send=0.6)
+    put(B, 293.2, rev_cymbal(1.0), gain=0.14)
+    # resolution: D major under the end card
+    padn = CH['D'][0]
+    put(B, 294.0, choir(padn, 4.5, attack=0.4, release=2.0), gain=0.26, send=0.8)
+    put(B, 294.0, pad(padn + ['A4'], 4.5, attack=0.3, release=2.0, cutoff=2400, detune=0.1), gain=0.2, send=0.7)
+    put(B, 294.0, sub_bass(hz('D2'), 4.4, drive=1.1), gain=0.2)
+    for t0, nm in [(294.0, 'D5'), (294.03, 'F#5'), (294.06, 'A5'), (295.0, 'D6'), (296.0, 'A5'), (297.0, 'F#5')]:
+        put(B, t0, piano(hz(nm), 3.0, vel=0.6, t60=3.0), gain=0.2, pan=0.1, send=0.7)
+    for t0, nm in [(294.5, 'A6'), (295.5, 'F#6'), (296.5, 'D6'), (297.5, 'A5')]:
+        put(B, t0, bell(hz(nm), 2.5, CELESTA, t60=2.0), gain=0.06, pan=0.3, send=0.8)
 
 
 # ------------------------------------------------------------------ sound effects
 def sfx_bank(e):
     ty, v, f = e['type'], e.get('v', 1.0), e.get('f', 1.0)
+    dur = e.get('dur', 1.0)
     n = lambda s: int(s * SR)
     tt = lambda s: np.arange(n(s)) / SR
     if ty == 'type':
         t = tt(0.09)
         y = filt(noise(len(t)), 2500, 'high') * np.exp(-t * 480) * 0.8 + np.sin(TAU * 150 * t) * np.exp(-t * 60) * 0.6 \
             + np.sin(TAU * 3300 * t) * np.exp(-t * 130) * 0.12
-        return y * v, 0.22, 0.25, 0.12
+        return y * v, 0.55, 0.25, 0.12
     if ty == 'tele':
         t = tt(0.05)
         y = filt(noise(len(t)), (1500, 6000)) * np.exp(-t * 600) + np.sin(TAU * 1050 * t) * np.exp(-t * 180) * 0.25
-        return y * v, 0.36, 0.25, 0.1
+        return y * v, 0.45, 0.25, 0.1
     if ty == 'key':
         t = tt(0.07)
         y = filt(noise(len(t)), (1400, 5500)) * np.exp(-t * 420) + np.sin(TAU * 95 * t) * np.exp(-t * 90) * 0.4
         return y * v, 0.34, 0.2, 0.1
     if ty == 'tick':
-        return clock_tick(True) * v, 0.18, 0.25, 0.15
+        return clock_tick(True) * v, 0.45, 0.25, 0.15
     if ty == 'fire':
         t = tt(0.6)
         y = np.sin(TAU * np.cumsum(520 + 560 * np.minimum(1, t / 0.06)) / SR) * np.exp(-t * 9) + bell(hz('A5'), 0.6, CELESTA, 0.9) * 0.4
@@ -781,7 +955,7 @@ def sfx_bank(e):
         for k, nm in enumerate(['A5', 'D6', 'F6']):
             b = bell(hz(nm), 2.0, CELESTA, t60=1.6)
             y[n(k * 0.07):n(k * 0.07) + len(b)] += b
-        return y, 0.16, 0.2, 0.5
+        return y, 0.11, 0.2, 0.5
     if ty == 'ding':
         t = tt(1.4)
         y = (np.sin(TAU * 2350 * t) + 0.4 * np.sin(TAU * 3480 * t)) * np.exp(-t * 3.2) * np.minimum(1, t / 0.002)
@@ -794,7 +968,7 @@ def sfx_bank(e):
             y[i:i + k] += R.standard_normal(k) * R.random()
         t = tt(0.4)
         y = filt(y, 3000, 'high') + np.sin(TAU * R.uniform(3000, 6000) * t) * np.exp(-t * 18) * 0.15
-        return y * v, 0.22, R.uniform(-0.8, 0.8), 0.3
+        return y * v, 0.45, R.uniform(-0.8, 0.8), 0.3
     if ty == 'blip':
         t = tt(0.14)
         y = (np.sin(TAU * f * t) + 0.25 * np.sin(TAU * 3 * f * t)) * np.exp(-t * 32)
@@ -802,7 +976,7 @@ def sfx_bank(e):
     if ty == 'error':
         t = tt(0.3)
         y = filt(saw(110, len(t)) + saw(117, len(t)), 1400) * np.exp(-t * 8)
-        return y, 0.18, 0.2, 0.15
+        return y * v, 0.18, 0.2, 0.15
     if ty == 'powerdown':
         t = tt(1.0)
         fr = 900 * np.exp(-t * 6) + 30
@@ -829,20 +1003,128 @@ def sfx_bank(e):
         return y, 0.4, 0.2, 0.25
     if ty == 'tok':
         t = tt(0.03)
-        return np.sin(TAU * 2600 * t) * np.exp(-t * 200) * v, 0.42, 0.15, 0.1
+        return np.sin(TAU * 2600 * t) * np.exp(-t * 200) * v, 0.55, 0.15, 0.1
     if ty == 'swell':
         t = tt(1.6)
         u = t / 1.6
         y = sweep(noise(len(t)), 200 * 15 ** u, q=1.2) * u ** 1.5 * np.minimum(1, (1.6 - t) / 0.25)
         y += np.sin(TAU * np.cumsum(70 + 90 * u) / SR) * np.sin(np.pi * u) * 0.5
-        return y, 0.4, 0.1, 0.4
+        return y, 0.7, 0.1, 0.4
     if ty == 'bell':
         return bell(587.33 * f, 3.0, TUBULAR, t60=2.4), 0.16, 0.2, 0.5
+    # ---- new for the extended cut
+    if ty == 'thump':      # heartbeat
+        t = tt(0.4)
+        y = np.sin(TAU * np.cumsum(48 + 60 * np.exp(-t * 30)) / SR) * np.exp(-t * 12)
+        return filt(y, 400) * v, 0.9, 0.0, 0.2
+    if ty == 'whoosh':
+        return whoosh(max(0.4, min(1.4, dur + 0.2)), 300, 4500), 0.42, 0.0, 0.3
+    if ty == 'whip':
+        t = tt(0.45)
+        u = t / 0.45
+        y = sweep(noise(len(t)), 600 * 12 ** np.sin(np.pi * u), q=1.0) * np.sin(np.pi * u) ** 3
+        pan = np.clip(1.2 - 2.4 * u, -1, 1)
+        a = (pan + 1) * np.pi / 4
+        return np.stack([y * np.cos(a), y * np.sin(a)], 1) * np.sqrt(2), 0.42, 0.0, 0.25
+    if ty == 'glitch':
+        y = np.zeros(n(0.6))
+        for _ in range(9):
+            i, L = n(R.random() * 0.5), n(0.02 + R.random() * 0.05)
+            t = np.arange(L) / SR
+            y[i:i + L] += np.sign(np.sin(TAU * R.uniform(120, 2400) * t)) * R.uniform(0.3, 1.0)
+        hold = 6
+        y = np.repeat(y[::hold], hold)[:len(y)]
+        return filt(y, 7000) * 0.6, 0.26, R.uniform(-0.5, 0.5), 0.15
+    if ty == 'bitcrush':
+        t = tt(0.7)
+        u = t / 0.7
+        y = sweep(noise(len(t)), 300 + 5000 * np.sin(np.pi * u), q=2) * np.sin(np.pi * u) ** 2
+        hold = 24
+        y = np.repeat(y[::hold], hold)[:len(y)]
+        return y, 0.3, 0.0, 0.2
+    if ty == 'shimmer':
+        d = max(0.6, min(2.0, dur))
+        t = tt(d + 1.2)
+        env = np.minimum(1, t / d) ** 2 * np.exp(-np.maximum(0, t - d) * 3)
+        y = sum(np.sin(TAU * hz(nm) * t + R.random() * 6) * (0.6 + 0.4 * np.sin(TAU * (5 + k) * t)) for k, nm in enumerate(['A6', 'D7', 'E7', 'F7']))
+        return y * env * 0.4, 0.4, R.uniform(-0.4, 0.4), 0.7
+    if ty == 'swoosh':
+        y = np.concatenate([rev_cymbal(0.3), np.zeros(n(0.4))])
+        y[n(0.3):n(0.3) + n(0.4)] += filt(noise(n(0.4)), 300) * np.exp(-np.arange(n(0.4)) / SR * 12) * 0.8
+        return y, 0.34, 0.0, 0.35
+    if ty == 'glass':
+        y = np.zeros(n(1.2))
+        for _ in range(60):
+            i, L = n(R.random() ** 2 * 0.9), n(0.004 + R.random() * 0.03)
+            t = np.arange(L) / SR
+            y[i:i + L] += filt(noise(L), (3000, 12000)) * np.exp(-t * 120) * R.uniform(0.2, 1)
+        for _ in range(12):
+            i = n(0.05 + R.random() * 0.9)
+            t = np.arange(n(0.3)) / SR
+            y[i:i + len(t)] += np.sin(TAU * R.uniform(3000, 7000) * t)[:len(y) - i] * np.exp(-t * 20)[:len(y) - i] * 0.2
+        y[:n(0.2)] += filt(noise(n(0.2)), 1500, 'high') * np.exp(-np.arange(n(0.2)) / SR * 25)
+        return y, 0.3, 0.0, 0.4
+    if ty in ('stamp', 'stampNo'):
+        t = tt(0.4)
+        y = np.sin(TAU * np.cumsum(110 + 90 * np.exp(-t * 40)) / SR) * np.exp(-t * 14) + filt(noise(len(t)), (400, 3500)) * np.exp(-t * 60) * 0.8
+        if ty == 'stampNo':
+            k = n(0.18)
+            y[:k] += filt(saw(98, k) + saw(104, k), 1600) * 0.3
+        return y * v, 0.5, 0.1, 0.2
+    if ty == 'spin':
+        t = tt(1.1)
+        u = t / 1.1
+        y = sweep(noise(len(t)), 500 + 3000 * u, q=1.2) * (0.5 + 0.5 * np.sin(TAU * (6 + 14 * u) * t)) * np.sin(np.pi * u) ** 0.7
+        return y, 0.35, 0.0, 0.25
+    if ty == 'crack':
+        t = tt(1.4)
+        y = filt(noise(len(t)), 1200, 'high') * np.exp(-t * 40) * 1.2
+        y += sweep(noise(len(t)), 900 * np.exp(-t * 1.2) + 150, q=4) * np.exp(-t * 2.5) * 0.8
+        return y, 0.4, 0.0, 0.4
+    if ty == 'scribble':
+        t = tt(0.3)
+        am = np.abs(np.sin(TAU * 11 * t + R.random() * 3)) ** 2
+        return filt(noise(len(t)), (2000, 7000)) * am * np.minimum(1, t / 0.02) * v, 0.2, 0.15, 0.1
+    if ty == 'alarm':
+        t = tt(1.2)
+        fr = np.where((t * 4).astype(int) % 2 == 0, 880, 660)
+        y = np.sign(np.sin(TAU * np.cumsum(fr) / SR)) * 0.5 * np.minimum(1, (1.2 - t) / 0.2)
+        return filt(y, 3000), 0.1, 0.3, 0.3
+    if ty == 'coin':
+        t = tt(0.35)
+        y = (np.sin(TAU * 1975 * t) + 0.6 * np.sin(TAU * 2637 * t) * (t > 0.06)) * np.exp(-t * 12)
+        return y * v, 0.14, R.uniform(-0.4, 0.4), 0.3
+    if ty == 'flip':
+        t = tt(0.07)
+        y = filt(noise(len(t)), (800, 5000)) * np.exp(-t * 90) + np.sin(TAU * 500 * t) * np.exp(-t * 60) * 0.3
+        return y * v, 0.3, R.uniform(-0.3, 0.3), 0.15
+    if ty == 'buzz':
+        t = tt(0.6)
+        y = (np.sin(TAU * 988 * t) + np.sin(TAU * 1319 * t) * (t > 0.12)) * np.exp(-t * 5)
+        return y, 0.16, 0.0, 0.3
+    if ty == 'impactS':
+        return impact(0.6, 1.8) * v, 0.35, 0.0, 0.4
+    if ty == 'denoise':
+        d = max(1.0, dur)
+        t = tt(d + 1.0)
+        u = np.clip(t / d, 0, 1)
+        nz = sweep(noise(len(t)), 7000 - 5000 * u, q=1.5) * (1 - u) ** 1.5
+        tone = sum(np.sin(TAU * hz(nm) * t) for nm in ['D5', 'F5', 'A5', 'D6']) * u ** 2 * np.exp(-np.maximum(0, t - d) * 3)
+        return nz * 0.6 + tone * 0.12, 0.2, 0.0, 0.5
+    if ty == 'check':
+        t = tt(0.3)
+        y = np.sin(TAU * 1319 * t) * (t < 0.08) * np.exp(-t * 20) + np.sin(TAU * 1760 * t) * (t >= 0.08) * np.exp(-(t - 0.08) * 16)
+        return y * v, 0.2, 0.2, 0.3
     return None
 
 
 def place_sfx(events):
     for e in events:
+        if e['type'] == 'hit':               # big hits belong to the score: hall reverb, sub drop
+            v = e.get('v', 1.0)
+            put(M(e['t']), e['t'], impact(min(1.3, 0.55 + 0.6 * v)), gain=0.75, send=0.55)
+            put(M(e['t']), e['t'], sub_bass(hz('D1'), 0.9, drive=2.0), gain=0.25 * v)
+            continue
         r = sfx_bank(e)
         if r is None:
             print('unknown sfx', e)
@@ -854,25 +1136,33 @@ def place_sfx(events):
 # ------------------------------------------------------------------ render
 def main():
     events = json.loads((ROOT / 'audio_events.json').read_text())
-    for fn in (sec_intro, sec_early, sec_winter, sec_80s, sec_1997, sec_2012, sec_2016, sec_2017,
-               sec_2020, sec_2022, sec_2024, sec_2025, sec_finale, sec_whooshes):
+    for fn in (sec_intro, sec_act1, sec_act2, sec_act3, sec_act4, sec_finale):
         fn()
+    for t0 in (14.0, 68.0, 148.0, 208.0):
+        act_card(t0)
     place_sfx(events)
     hall, room = make_ir(2.8, 3.6, seed=1), make_ir(1.1, 1.6, predelay=0.012, damp=6000, seed=2)
     musA = A.dry + reverb(A.send, hall)
-    tape_stop(musA, 53.1, 53.9)
+    tape_stop(musA, CRASH, CRASH + 0.8)
     musB = B.dry + D.dry * DUCK[:, None] + reverb(B.send + D.send * DUCK[:, None], hall)
+    del A.dry, A.send, B.dry, B.send, D.dry, D.send
     sfx = S.dry + reverb(S.send, room)
-    mix = (musA + musB + sfx)[:N]
+    music = musA + musB
+    del musA, musB
+    mix = (music + sfx)[:N].astype(np.float64)
+    import os
+    if os.environ.get('AIH_STEMS'):
+        np.save(ROOT / 'build' / 'stem_music.npy', music[:N].astype(np.float32))
+        np.save(ROOT / 'build' / 'stem_sfx.npy', sfx[:N].astype(np.float32))
     mix = filt(mix, 28, 'high')
-    stems = {'music': (musA + musB)[:N], 'sfx': sfx[:N]}
-    for k, x in stems.items():
-        print(f'{k:6s} rms {20 * np.log10(np.sqrt(np.mean(x ** 2)) + 1e-12):6.1f} dBFS  peak {20 * np.log10(np.max(np.abs(x)) + 1e-12):5.1f} dBFS')
+    for k, x in {'music': music[:N], 'sfx': sfx[:N]}.items():
+        print(f'{k:6s} rms {20 * np.log10(np.sqrt(np.mean(x.astype(np.float64) ** 2)) + 1e-12):6.1f} dBFS  peak {20 * np.log10(np.max(np.abs(x)) + 1e-12):5.1f} dBFS')
+    del music, sfx
     # loudness: -14 LUFS, peaks under -1.5 dBFS
     g = 10 ** ((-14.0 - lufs(mix)) / 20)
     mix = limiter(mix * g, ceiling=10 ** (-1.5 / 20))
     fade = np.ones(N)
-    fade[-int(1.0 * SR):] = (0.5 + 0.5 * np.cos(np.linspace(0, np.pi, int(1.0 * SR)))) ** 1.5
+    fade[-int(2.0 * SR):] = (0.5 + 0.5 * np.cos(np.linspace(0, np.pi, int(2.0 * SR)))) ** 1.5
     mix *= fade[:, None]
     print(f'master: {lufs(mix):.1f} LUFS, peak {20 * np.log10(np.max(np.abs(mix))):.2f} dBFS')
     pcm = (np.clip(mix, -1, 1) * 32767).astype('<i2')
