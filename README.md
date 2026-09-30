@@ -4,6 +4,8 @@
 
 **▶ [Watch / download the video (MP4, 1080p60, 2:00)](https://github.com/carljings/ai-history-video/releases/download/v1.0/ai_history.mp4)**
 
+Want the long version? The [5-minute bilingual edition](https://github.com/carljings/ai-history-video/releases/tag/5min-v1.0) (1843–2025, Chinese and English on screen) lives on the [`5min` branch](https://github.com/carljings/ai-history-video/tree/5min).
+
 A two-minute motion-graphics film about the history of artificial intelligence, from the first artificial neuron (1943) to machines that reason (2025). Everything is generated from code: every frame is drawn on an HTML canvas, and the soundtrack and sound effects are synthesized in Python.
 
 ![Preview frames](docs/preview.jpg)
